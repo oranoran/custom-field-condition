@@ -1,11 +1,6 @@
-import React, {
-  useCallback,
-  useState,
-  useEffect,
-  FunctionComponent,
-} from 'react'
+import React, { useCallback, useState, useEffect, FunctionComponent } from 'react'
 import styled from 'styled-components'
-import { useField } from 'payload/components/forms'
+import { useField, withCondition } from 'payload/components/forms'
 import { Field } from 'payload/types'
 import Editor from 'rich-markdown-editor'
 
@@ -36,9 +31,7 @@ const StyledMarkdownField = styled.div`
   }
 `
 
-export const MarkdownField: FunctionComponent<FieldWithPath> = (
-  props: FieldWithPath
-) => {
+const MarkdownFieldInner: FunctionComponent<FieldWithPath> = (props: FieldWithPath) => {
   const { label, path, admin } = props
   const { value, setValue, errorMessage, showError } = useField<string>({
     path,
@@ -63,18 +56,14 @@ export const MarkdownField: FunctionComponent<FieldWithPath> = (
         setEdited(true)
       }
       const trimmedNewValue = newValue.trim().replace(/\r\n/g, '\n')
-      const modified =
-        trimmedNewValue !== origValue &&
-        (Boolean(trimmedNewValue) || Boolean(origValue))
+      const modified = trimmedNewValue !== origValue && (Boolean(trimmedNewValue) || Boolean(origValue))
       setValue(newValue, modified)
     },
     [path, edited, origValue]
   )
 
   return (
-    <StyledMarkdownField
-      className={`field-type text${showError ? ' error' : ''}`}
-    >
+    <StyledMarkdownField className={`field-type text${showError ? ' error' : ''}`}>
       {errorMessage && (
         <aside className="tooltip field-error">
           {errorMessage}
@@ -83,23 +72,11 @@ export const MarkdownField: FunctionComponent<FieldWithPath> = (
       )}
       <div className="field-label">{label}</div>
       <div style={(admin as any)?.style ?? {}} className="field-type markdown">
-        {whichEditor === 'blank' && (
-          <MemorizedEditor
-            id={`markdown-new-field-${path.replace(/\W/g, '-')}`}
-            defaultValue={value}
-            onChange={onChange}
-            placeholder="Write something here..."
-          />
-        )}
-        {whichEditor === 'non-blank' && (
-          <MemorizedEditor
-            id={`markdown-field-${path.replace(/\W/g, '-')}`}
-            defaultValue={value}
-            onChange={onChange}
-            placeholder="Write something here..."
-          />
-        )}
+        {whichEditor === 'blank' && <MemorizedEditor id={`markdown-new-field-${path.replace(/\W/g, '-')}`} defaultValue={value} onChange={onChange} placeholder="Write something here..." />}
+        {whichEditor === 'non-blank' && <MemorizedEditor id={`markdown-field-${path.replace(/\W/g, '-')}`} defaultValue={value} onChange={onChange} placeholder="Write something here..." />}
       </div>
     </StyledMarkdownField>
   )
 }
+
+export const MarkdownField = withCondition(MarkdownFieldInner)
